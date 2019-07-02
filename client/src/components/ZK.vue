@@ -21,32 +21,10 @@
                 <strong>1. Поиск ЗК</strong>
               </div>
               <div class="card-body">
-                <form class="form-horizontal" v-on:submit.prevent="getZkByBarcode">
+                <form class="form-horizontal" v-on:submit.prevent="getZk">
                   <div class="form-group row">
                     <div class="col-md-12">
-                      <p>Поиск по штрих-коду</p>
-                      <div class="input-group">
-                        <input
-                          v-model="zkbarcode"
-                          class="form-control"
-                          id="input1-group2"
-                          type="text"
-                          name="input1-group2"
-                          placeholder="Штрих-код из правого нижнего угла ЗК"
-                        >
-                        <span class="input-group-append">
-                          <button class="btn btn-primary" type="submit">
-                            <i class="fa fa-barcode"></i> Поиск по ШК
-                          </button>
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </form>
-                <form class="form-horizontal" v-on:submit.prevent="getZkByNum">
-                  <div class="form-group row">
-                    <div class="col-md-12">
-                      <p>или поиск по номеру и году ЗК</p>
+                      <p>По штрих-коду из правого нижнего угла или по номеру и году ЗК</p>
                       <div class="input-group">
                         <div class="input-group-prepend">
                           <select class="form-control" v-model="zk_prefix">
@@ -63,7 +41,7 @@
                           id="zk_nomer"
                           type="text"
                           name="zk_nomer"
-                          placeholder="Номер ЗК"
+                          placeholder="Номер ЗК или штрих-код"
                         >
                         <div class="input-group-append">
                           <select class="form-control" v-model="zk_year">
@@ -84,8 +62,8 @@
                       </button>
                     </div>
                     <div class="col-6 col-sm-4 col-md-2 col-xl mb-3 mb-xl-0">
-                      <button class="btn btn-primary" type="button" v-on:click="getZkByNum">
-                        <i class="fa fa-search"></i> Поиск по номеру
+                      <button class="btn btn-primary" type="button" v-on:click="getZk">
+                        <i class="fa fa-search"></i> Начать поиск
                       </button>
                     </div>
                   </div>
@@ -171,7 +149,7 @@
                   <div class="col-sm-9">
                     <strong
                       v-if="zk_info_num"
-                    >{{ zk_info_num }} {{ zk_info_customer }}. Всего строк: {{devices.length}}</strong>
+                    >{{ zk_info_num }} от {{ zk_info_date }}. {{ zk_info_customer }}. Всего строк: {{devices.length}}</strong>
                   </div>
                   <div class="col-sm-3 text-right">
                     <strong>Выбрано строк: {{selected.length}}</strong>
@@ -239,7 +217,7 @@
         <span>© 2019 Александр Куликов</span>
       </div>
       <div class="ml-auto">
-        <span>Учёт движения СИ. Версия 0.2</span>
+        <span>Учёт движения СИ. Версия 0.3 - 20190702</span>
       </div>
     </footer>
   </div>
@@ -255,7 +233,6 @@ export default {
       devices: [],
       selected: [],
       selectAll: false,
-      zkbarcode: "",
       zk_nomer: "",
       zk_prefix: "bp",
       zk_year: "2019",
@@ -263,6 +240,7 @@ export default {
       location: "",
       zk_info_num: "",
       zk_info_customer: "",
+      zk_info_date: "",
       users: [
         { id: "303", name: "Алещенко Л.В." },
         { id: "305", name: "Власенкова Е.А." },
@@ -283,49 +261,31 @@ export default {
   },
   methods: {
     clearSearchFields() {
-      (this.zkbarcode = ""),
-        (this.zk_nomer = ""),
+      (this.zk_nomer = ""),
         (this.zk_prefix = "bp"),
         (this.zk_year = "2019"),
         (this.devices = []),
         (this.selected = []),
         (this.selectAll = false),
         (this.zk_info_num = ""),
-        (this.zk_info_customer = "");
+        (this.zk_info_customer = ""),
+        (this.zk_info_date = "");
     },
-    getZkByBarcode() {
-      axios
-        .post("/api/v1/zk", { order_head_id: this.zkbarcode })
-        .then(res => {
-          this.comment = "";
-          this.location = "";
-          this.devices = res.data["devices"];
-          this.zk_info_num = res.data["local_id"];
-          this.zk_info_customer = res.data["CUSTOMER_NAME"];
-          this.selectAll = false;
-          this.selectAllDev();
-          this.selectAll = true;
-          console.log(res);
-        })
-        .catch(err => {
-          console.log(err);
-        });
-    },
-    getZkByNum() {
+    getZk() {
       if (this.zk_nomer) {
         axios
-          .post("/api/v1/zkbynum", {
+          .post("/api/v1/findzk", {
             zk_prefix: this.zk_prefix,
             zk_nomer: this.zk_nomer,
             zk_year: this.zk_year
           })
           .then(res => {
-            this.zkbarcode = res.data["order_id"];
             this.comment = "";
             this.location = "";
             this.devices = res.data["devices"];
             this.zk_info_num = res.data["local_id"];
             this.zk_info_customer = res.data["CUSTOMER_NAME"];
+            this.zk_info_date = res.data["date"];
             this.selectAll = false;
             this.selectAllDev();
             this.selectAll = true;
@@ -347,7 +307,7 @@ export default {
           location: this.location
         })
         .then(res => {
-          this.getZkByBarcode();
+          this.getZk();
           console.log(res);
         })
         .catch(err => {
