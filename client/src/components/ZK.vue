@@ -164,6 +164,12 @@
                 </div>
               </div>
               <div class="card-body">
+                <div v-if="zk_info_pay_date" class="alert alert-success" role="alert">
+                  <span>
+                    <strong>Оплата: {{zk_info_pay_date | rudate}}</strong>
+                  </span>
+                  <span v-if="zk_info_pay_procent">&nbsp;({{zk_info_pay_procent}}%)</span>
+                </div>
                 <table class="table table-responsive-sm table-striped table-sm">
                   <thead>
                     <tr class="text-center">
@@ -229,7 +235,7 @@
         <span>© 2019 Александр Куликов</span>
       </div>
       <div class="ml-auto">
-        <span>Учёт движения СИ. Версия 0.3 - 20190702</span>
+        <span>Учёт движения СИ. Версия 0.4 - 20190708</span>
       </div>
     </footer>
   </div>
@@ -254,6 +260,8 @@ export default {
       zk_info_num: "",
       zk_info_customer: "",
       zk_info_date: "",
+      zk_info_pay_date: "",
+      zk_info_pay_procent: "",
       users: [
         { id: "303", name: "Алещенко Л.В." },
         { id: "305", name: "Власенкова Е.А." },
@@ -285,6 +293,8 @@ export default {
         (this.comment = ""),
         (this.location = ""),
         (this.error_text = ""),
+        (this.zk_info_pay_date = ""),
+        (this.zk_info_pay_procent = ""),
         (this.zk_info_date = "");
     },
     getZk() {
@@ -303,6 +313,8 @@ export default {
               this.zk_info_num = "";
               this.zk_info_customer = "";
               this.zk_info_date = "";
+              this.zk_info_pay_date = "";
+              this.zk_info_pay_procent = "";
               this.selected = [];
               this.selectAll = false;
               this.error_text = res.data["error_text"];
@@ -313,6 +325,8 @@ export default {
               this.zk_info_num = res.data["local_id"];
               this.zk_info_customer = res.data["CUSTOMER_NAME"];
               this.zk_info_date = res.data["date"];
+              this.zk_info_pay_date = res.data["payment_date"];
+              this.zk_info_pay_procent = res.data["payment_num"];
               this.selectAll = false;
               this.selectAllDev();
               this.selectAll = true;
