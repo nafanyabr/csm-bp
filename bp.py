@@ -37,7 +37,7 @@ def find_zk():
 
     # check is this a barcode (must contain 010030)
     if (zk_nomer and ('010030' in zk_nomer)):
-        query_order_info = 'SELECT orha.order_id, orha.local_id, orha.[date], cst.CUSTOMER_NAME ' \
+        query_order_info = 'SELECT orha.order_id, orha.local_id, orha.[date], orha.payment_date, orha.payment_num, cst.CUSTOMER_NAME ' \
             'FROM order_head_actual orha ' \
             'inner join CUSTOMER cst on cst.CUSTOMER_ID = orha.customer_id ' \
             f'where orha.order_id = {zk_nomer}'
@@ -49,7 +49,7 @@ def find_zk():
             return jsonify(
                 {'status': 'error', 'error_text': 'Wrong prefix!'})
 
-        query_order_info = 'SELECT orha.order_id, orha.local_id, orha.[date], cst.CUSTOMER_NAME '\
+        query_order_info = 'SELECT orha.order_id, orha.local_id, orha.[date], orha.payment_date, orha.payment_num, cst.CUSTOMER_NAME '\
             f'FROM order_head_actual_{zk_year} orha '\
             'inner join CUSTOMER cst on cst.CUSTOMER_ID = orha.customer_id '\
             'where orha.local_id = %s'
@@ -62,11 +62,9 @@ def find_zk():
                 cur.execute(query_order_info, order_local_id)
                 order_head = cur.fetchone()
                 if order_head:
-                    order_head['date'] = order_head['date'].strftime(
-                        '%d.%m.%Y')
                     order_head_id = order_head['order_id']
                     query_order_pos = 'select op_id, dt.device_name, dt.device_mark, opa2.qty, trar.COMMENT, '\
-                        'trar.LOCATION, dest.destination_name, trar.destination_id, opa2.work_done, count(dcra.employee_id) as nazn '\
+                        'trar.LOCATION, trar.accept_date, dest.destination_name, trar.destination_id, opa2.work_done, count(dcra.employee_id) as nazn '\
                         'from TRANSPORTATION_ACTUAL_RVR trar '\
                         'inner join ORDER_POS_ACTUAL opa2 on opa2.ORDER_POS_ID = trar.ORDER_POS_ID '\
                         'left join device_calibration_rec_actual dcra on dcra.order_pos_id = opa2.ORDER_POS_ID '\
@@ -80,7 +78,7 @@ def find_zk():
                         'GROUP BY tra.ORDER_POS_ID) tra2 '\
                         'on tra2.tra_id = trar.TRANSPORTATION_ID '\
                         'group by op_id, dt.device_name, dt.device_mark, opa2.qty, trar.COMMENT, '\
-                        'trar.LOCATION, dest.destination_name, trar.destination_id, opa2.work_done'
+                        'trar.LOCATION, trar.accept_date, dest.destination_name, trar.destination_id, opa2.work_done'
 
                     with conn.cursor(as_dict=True) as cur:
                         cur.execute(query_order_pos)

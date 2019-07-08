@@ -42,7 +42,7 @@
                           type="text"
                           name="zk_nomer"
                           placeholder="Номер ЗК или штрих-код"
-                        >
+                        />
                         <div class="input-group-append">
                           <select class="form-control" v-model="zk_year">
                             <option
@@ -88,7 +88,7 @@
                         type="text"
                         name="upd-comment"
                         placeholder="Введите кол-во СИ или комментарий"
-                      >
+                      />
                     </div>
                   </div>
                   <div class="form-group row">
@@ -101,11 +101,18 @@
                         type="text"
                         name="upd-location"
                         placeholder="Укажите место/полку"
-                      >
+                      />
                       <span class="help-block">Можно отсканировать штрих-код полки</span>
                     </div>
                   </div>
                   <div class="row align-items-center">
+                    <div class="col-6 col-sm-4 col-md-2 col-xl mb-3 mb-xl-0">
+                      <button
+                        class="btn btn-square btn-block btn-light"
+                        type="button"
+                        v-on:click="updateSi(1)"
+                      >Бюро приёма</button>
+                    </div>
                     <div class="col-6 col-sm-4 col-md-2 col-xl mb-3 mb-xl-0">
                       <button
                         class="btn btn-square btn-block btn-warning"
@@ -149,7 +156,7 @@
                   <div class="col-sm-9">
                     <strong
                       v-if="zk_info_num"
-                    >{{ zk_info_num }} от {{ zk_info_date }}. {{ zk_info_customer }}. Всего строк: {{devices.length}}</strong>
+                    >{{ zk_info_num }} от {{ zk_info_date | rudate }}. {{ zk_info_customer }}. Всего строк: {{devices.length}}</strong>
                   </div>
                   <div class="col-sm-3 text-right">
                     <strong>Выбрано строк: {{selected.length}}</strong>
@@ -161,11 +168,12 @@
                   <thead>
                     <tr class="text-center">
                       <th>
-                        <input type="checkbox" v-model="selectAll" @click="selectAllDev">
+                        <input type="checkbox" v-model="selectAll" @click="selectAllDev" />
                       </th>
                       <th>Наименование СИ</th>
                       <th>Кол-во в ЗК/Назначено</th>
                       <th>Этап</th>
+                      <th>Дата этапа</th>
                       <th>Коммент/кол-во</th>
                       <th>Место</th>
                       <th>Статус</th>
@@ -183,7 +191,7 @@
                           :value="device.op_id"
                           v-model="selected"
                           @click="selectDev(device.op_id)"
-                        >
+                        />
                       </td>
                       <td
                         v-bind:id="device.op_id"
@@ -195,6 +203,7 @@
                           v-bind:class="{'badge':true, 'badge-success': device.destination_id == 4, 'badge-warning': device.destination_id == 2, 'badge-secondary': device.destination_id == 3, 'badge-primary': device.destination_id == 5}"
                         >{{device.destination_name}}</span>
                       </td>
+                      <td class="text-center">{{device.accept_date | rudate}}</td>
                       <td class="text-center">{{device.COMMENT}}</td>
                       <td class="text-center">{{device.LOCATION}}</td>
                       <td class="text-center">
@@ -205,6 +214,9 @@
                     </tr>
                   </tbody>
                 </table>
+                <div v-if="error_text" class="alert alert-danger" role="alert">
+                  <strong>{{ error_text }}</strong>
+                </div>
               </div>
             </div>
           </div>
@@ -230,6 +242,7 @@ export default {
   props: ["userid"],
   data() {
     return {
+      error_text: "",
       devices: [],
       selected: [],
       selectAll: false,
@@ -269,6 +282,9 @@ export default {
         (this.selectAll = false),
         (this.zk_info_num = ""),
         (this.zk_info_customer = ""),
+        (this.comment = ""),
+        (this.location = ""),
+        (this.error_text = ""),
         (this.zk_info_date = "");
     },
     getZk() {
@@ -280,15 +296,27 @@ export default {
             zk_year: this.zk_year
           })
           .then(res => {
-            this.comment = "";
-            this.location = "";
-            this.devices = res.data["devices"];
-            this.zk_info_num = res.data["local_id"];
-            this.zk_info_customer = res.data["CUSTOMER_NAME"];
-            this.zk_info_date = res.data["date"];
-            this.selectAll = false;
-            this.selectAllDev();
-            this.selectAll = true;
+            if (res.data["status"] == "error") {
+              this.comment = "";
+              this.location = "";
+              this.devices = "";
+              this.zk_info_num = "";
+              this.zk_info_customer = "";
+              this.zk_info_date = "";
+              this.selected = [];
+              this.selectAll = false;
+              this.error_text = res.data["error_text"];
+            } else {
+              this.comment = "";
+              this.location = "";
+              this.devices = res.data["devices"];
+              this.zk_info_num = res.data["local_id"];
+              this.zk_info_customer = res.data["CUSTOMER_NAME"];
+              this.zk_info_date = res.data["date"];
+              this.selectAll = false;
+              this.selectAllDev();
+              this.selectAll = true;
+            }
             console.log(res);
           })
           .catch(err => {
