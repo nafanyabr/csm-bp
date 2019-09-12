@@ -2,7 +2,8 @@
 
 Веб-приложение для БД АИС "Метрконтроль", позволяющая массово менять статус и место нахождения СИ при поверке в ЦСМ.
 
-[![](csm-bp-demo.png)](https://drive.google.com/open?id=1hVS887_XCSP5ajjmhrC41PCTloHHpnD-]
+(csm-bp-demo.png)
+[Видео](https://drive.google.com/open?id=1hVS887_XCSP5ajjmhrC41PCTloHHpnD-]
 
 Используемые технологии:
 Backend = Flask
