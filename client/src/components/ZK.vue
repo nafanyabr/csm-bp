@@ -235,7 +235,7 @@
         <span>© 2019 Александр Куликов</span>
       </div>
       <div class="ml-auto">
-        <span>Учёт движения СИ. Версия 0.4 - 20190708</span>
+        <span>Учёт движения СИ. Версия 0.5 - 20190912</span>
       </div>
     </footer>
   </div>
@@ -300,10 +300,12 @@ export default {
     getZk() {
       if (this.zk_nomer) {
         axios
-          .post("/api/v1/findzk", {
-            zk_prefix: this.zk_prefix,
-            zk_nomer: this.zk_nomer,
-            zk_year: this.zk_year
+          .get("/api/v1/orders", {
+            params: {
+              zk_prefix: this.zk_prefix,
+              zk_nomer: this.zk_nomer,
+              zk_year: this.zk_year
+            }
           })
           .then(res => {
             if (res.data["status"] == "error") {
